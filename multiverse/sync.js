@@ -3,9 +3,11 @@
 
 /** Reconnaît une URL de VOD YouTube ou Twitch. Renvoie {platform, id} ou null. */
 export function parseVodUrl(raw) {
+  const s = String(raw ?? '').trim();
   let url;
   try {
-    url = new URL(String(raw).trim());
+    // Accepte aussi « youtube.com/watch?v=… » ou « www.twitch.tv/videos/… » sans https://
+    url = new URL(/^[a-z][\w+.-]*:\/\//i.test(s) ? s : 'https://' + s);
   } catch {
     return null;
   }

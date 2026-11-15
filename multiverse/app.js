@@ -8,22 +8,30 @@ const state = decodeState(new URLSearchParams(location.hash.slice(1)).get('s'));
 let active = 0;          // index du POV affiché
 let player = null;       // adaptateur du lecteur courant
 let globalMs = null;     // instant réel affiché sur l'horloge commune
+let pendingMs = null;    // instant demandé au lecteur, pas encore confirmé par lui
+let pendingTicks = 0;    // ticks de lecture écoulés depuis la demande
+let durationChecked = false; // durée réelle du POV actif déjà relevée ?
 let scrubbing = false;
 const emptyHtml = $('player').innerHTML;
+const tl = $('timeline');
 
 // --- Adaptateurs de lecteur ------------------------------------------------
 const scripts = {};
-function loadScript(src, ready) {
-  scripts[src] ??= new Promise((resolve, reject) => {
-    if (ready && ready()) return resolve();
+function loadScript(src, ready, ms = 15000) {
+  if (ready && ready()) return Promise.resolve();
+  return (scripts[src] ??= new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = src;
-    s.onerror = () => reject(new Error('Impossible de charger ' + src));
-    if (src.includes('youtube')) window.onYouTubeIframeAPIReady = resolve;
-    else s.onload = resolve;
+    let timer;
+    const done = () => { clearTimeout(timer); resolve(); };
+    // En cas d'échec, on vide le cache pour qu'un prochain essai refasse la requête.
+    const fail = (msg) => { clearTimeout(timer); delete scripts[src]; s.remove(); reject(new Error(msg)); };
+    s.onerror = () => fail('Impossible de charger le lecteur (' + new URL(src).hostname + ').');
+    timer = setTimeout(() => fail('Le lecteur (' + new URL(src).hostname + ') ne répond pas.'), ms);
+    if (src.includes('youtube')) window.onYouTubeIframeAPIReady = done;
+    else s.onload = done;
     document.head.appendChild(s);
-  });
-  return scripts[src];
+  }));
 }
 
 async function mountYouTube(el, id, startSec) {
@@ -63,12 +71,19 @@ async function mountTwitch(el, id, startSec) {
   };
 }
 
+/** Instant réel le plus frais : la cible en attente, sinon la position lue à l'instant dans le lecteur. */
+function currentGlobal() {
+  if (pendingMs != null || !player || !state.povs[active]) return pendingMs ?? globalMs;
+  try { return toGlobal(state.povs[active], player.time()); } catch { return globalMs; }
+}
+
 let mountToken = 0;
 async function mount(index, atGlobal) {
   const pov = state.povs[index];
   if (!pov) return;
   const token = ++mountToken;
   active = index;
+  durationChecked = false;
   player?.destroy();
   player = null;
   const box = $('player');
@@ -77,52 +92,59 @@ async function mount(index, atGlobal) {
   box.appendChild(el);
   const startSec = Math.max(0, toLocal(pov, atGlobal ?? pov.start));
   globalMs = toGlobal(pov, startSec);
+  pendingMs = globalMs; pendingTicks = 0;
   renderPovs();
   try {
     const p = await (pov.platform === 'youtube' ? mountYouTube : mountTwitch)(el, pov.id, startSec);
     if (token !== mountToken) return p.destroy(); // un autre POV a été choisi entre-temps
     player = p;
-    const d = p.duration();
-    if (d > 0 && !pov.duration) { pov.duration = Math.round(d); save(); }
+    // Les paramètres de départ n'acceptent que des secondes entières : on corrige la fraction.
+    if (startSec % 1) p.seek(startSec);
   } catch (e) {
-    toast(e.message);
+    if (token === mountToken) toast(e.message);
   }
 }
 
 // --- Rendu -------------------------------------------------------------------
 function renderPovs() {
   const box = $('povs');
+  const focused = box.contains(document.activeElement) ? document.activeElement.dataset.key : null;
   box.innerHTML = '';
   state.povs.forEach((pov, i) => {
-    const card = document.createElement('div');
-    card.className = 'pov' + (i === active ? ' active' : '');
-    if (globalMs != null && !covers(pov, globalMs)) card.classList.add('off');
-    card.tabIndex = 0;
-    card.setAttribute('role', 'button');
+    const off = globalMs != null && !covers(pov, globalMs);
+    const card = el('div', 'pov' + (i === active ? ' active' : '') + (off ? ' off' : ''));
     const badge = el('span', 'badge ' + pov.platform, pov.platform);
-    const name = el('span', 'name', pov.label);
-    const meta = el('span', 'meta', 'début ' + formatClock(pov.start)
-      + (globalMs != null && !covers(pov, globalMs) ? ' · hors champ' : ''));
+    const name = el('button', 'name', pov.label);
+    name.type = 'button';
+    name.dataset.key = 'go-' + i;
+    name.title = 'Regarder ce POV au même instant';
+    name.setAttribute('aria-pressed', String(i === active));
+    const meta = el('span', 'meta', 'début ' + formatClock(pov.start) + (off ? ' · hors champ' : ''));
     const tools = el('span', 'tools');
-    for (const [txt, title, fn] of [
-      ['−1s', 'Décaler ce POV d\'une seconde plus tôt', () => nudge(i, -1000)],
-      ['+1s', 'Décaler ce POV d\'une seconde plus tard', () => nudge(i, 1000)],
-      ['✕', 'Retirer ce POV', () => removePov(i)],
+    for (const [key, txt, title, fn] of [
+      ['minus', '−1s', 'Recaler : ce POV a démarré 1 s plus tôt', () => nudge(i, -1000)],
+      ['plus', '+1s', 'Recaler : ce POV a démarré 1 s plus tard', () => nudge(i, 1000)],
+      ['del', '✕', 'Retirer ce POV', () => removePov(i)],
     ]) {
-      const b = el('span', '', txt);
+      const b = el('button', '', txt);
+      b.type = 'button';
       b.title = title;
-      b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+      b.dataset.key = key + '-' + i;
+      b.setAttribute('aria-label', title + ' (' + pov.label + ')');
+      b.addEventListener('click', fn);
       tools.appendChild(b);
     }
     card.append(badge, name, meta, tools);
-    const go = () => mount(i, globalMs);
-    card.addEventListener('click', go);
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    // Toute la carte est cliquable à la souris, sauf la zone d'outils.
+    card.addEventListener('click', (e) => { if (!e.target.closest('.tools')) mount(i, currentGlobal()); });
     box.appendChild(card);
   });
+  if (focused) box.querySelector(`[data-key="${focused}"]`)?.focus({ preventScroll: true });
   const has = state.povs.length > 0;
-  $('timeline').disabled = !has;
+  tl.disabled = !has;
   $('addMoment').disabled = !has;
+  $('play').disabled = !has;
+  if (!has) $('play').textContent = '▶';
   renderMarkers();
 }
 
@@ -166,35 +188,50 @@ function el(tag, cls, text) {
 
 // --- Actions -----------------------------------------------------------------
 function seekGlobal(ms) {
+  if (!state.povs.length) return toast('Ajoutez un POV pour lire ce moment.');
   const target = pickPov(state.povs, ms, active);
   if (target !== active || !player) return mount(target, ms);
   player.seek(Math.max(0, toLocal(state.povs[active], ms)));
   globalMs = ms;
+  pendingMs = ms; pendingTicks = 0;
 }
 
+// Décaler le début réel d'un POV : « −1s » = la VOD a démarré 1 s plus tôt qu'indiqué.
 function nudge(i, deltaMs) {
+  const at = currentGlobal();
   state.povs[i].start += deltaMs;
   save();
-  if (i === active && player && globalMs != null) player.seek(Math.max(0, toLocal(state.povs[i], globalMs)));
+  if (i === active && player && at != null) {
+    player.seek(Math.max(0, toLocal(state.povs[i], at)));
+    globalMs = at;
+    pendingMs = at; pendingTicks = 0;
+  }
   renderPovs();
 }
 
 function removePov(i) {
+  const at = currentGlobal();
   state.povs.splice(i, 1);
   save();
   if (i === active) {
     player?.destroy();
     player = null;
+    mountToken++; // annule un éventuel montage en cours
     active = 0;
-    if (state.povs.length) mount(0, globalMs);
-    else { $('player').innerHTML = emptyHtml; globalMs = null; $('clock').textContent = '--:--:--'; }
+    if (state.povs.length) mount(pickPov(state.povs, at, 0), at);
+    else {
+      $('player').innerHTML = emptyHtml;
+      globalMs = null;
+      pendingMs = null;
+      tl.value = 0;
+      $('clock').textContent = '--:--:--';
+    }
   } else if (i < active) active--;
   renderPovs();
 }
 
 function save() {
-  const s = encodeState(state);
-  history.replaceState(null, '', '#s=' + s);
+  history.replaceState(null, '', '#s=' + encodeState(state));
 }
 
 function toast(msg) {
@@ -202,7 +239,7 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => t.classList.remove('show'), 2200);
+  toast.timer = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
 $('addPov').addEventListener('submit', (e) => {
@@ -210,14 +247,14 @@ $('addPov').addEventListener('submit', (e) => {
   const f = new FormData(e.target);
   const vod = parseVodUrl(f.get('url'));
   const start = new Date(f.get('start')).getTime();
-  if (!vod) return ($('formError').textContent = 'URL non reconnue : utilisez une VOD Twitch (/videos/…) ou YouTube.');
-  if (!Number.isFinite(start)) return ($('formError').textContent = 'Indiquez l\'heure réelle de début de la VOD.');
-  $('formError').textContent = '';
-  state.povs.push({
-    ...vod, start,
-    label: String(f.get('label') || '').trim() || vod.id,
-    duration: parseDuration(f.get('duration')),
-  });
+  const durText = String(f.get('duration') || '').trim();
+  const duration = parseDuration(durText);
+  const err = $('formError');
+  if (!vod) return (err.textContent = 'Lien non reconnu : il faut une VOD Twitch (twitch.tv/videos/…) ou une vidéo YouTube (youtube.com/watch?v=…).');
+  if (!Number.isFinite(start)) return (err.textContent = 'Indiquez l\'heure réelle de début de la VOD.');
+  if (durText && (!duration || duration > 48 * 3600)) return (err.textContent = 'Durée invalide : utilisez h:mm (ex. 4:00) ou h:mm:ss.');
+  err.textContent = '';
+  state.povs.push({ ...vod, start, label: String(f.get('label') || '').trim() || vod.id, duration });
   save();
   e.target.reset();
   if (state.povs.length === 1) mount(0, null);
@@ -225,16 +262,21 @@ $('addPov').addEventListener('submit', (e) => {
 });
 
 $('addMoment').addEventListener('click', () => {
-  if (globalMs == null) return;
+  const at = currentGlobal();
+  if (at == null) return;
   const label = prompt('Nom du moment (ex. : « La trahison »)', '');
   if (label === null) return;
-  state.moments.push({ at: Math.round(globalMs), label: label.trim().slice(0, 80) });
+  state.moments.push({ at: Math.round(at), label: label.trim().slice(0, 80) });
   save();
   renderMoments();
 });
 
 $('play').addEventListener('click', () => player?.toggle());
-$('title').addEventListener('input', (e) => { state.title = e.target.value; document.title = (state.title ? state.title + ' · ' : '') + 'MULTIVERSE'; save(); });
+$('title').addEventListener('input', (e) => {
+  state.title = e.target.value;
+  document.title = (state.title ? state.title + ' · ' : '') + 'MULTIVERSE';
+  save();
+});
 
 $('share').addEventListener('click', async () => {
   save();
@@ -246,24 +288,56 @@ $('share').addEventListener('click', async () => {
   }
 });
 
-const tl = $('timeline');
+// Un lien MULTIVERSE collé dans le même onglet ne recharge pas la page : on le fait nous-mêmes.
+// (history.replaceState, utilisé par save(), ne déclenche jamais hashchange.)
+window.addEventListener('hashchange', () => location.reload());
+
+const sliderToMs = (b) => b.min + (tl.value / 1000) * (b.max - b.min);
 tl.addEventListener('input', () => {
   scrubbing = true;
   const b = timelineBounds(state.povs);
-  if (b) $('clock').textContent = formatClock(b.min + (tl.value / 1000) * (b.max - b.min));
+  if (b) $('clock').textContent = formatClock(sliderToMs(b));
 });
 tl.addEventListener('change', () => {
   scrubbing = false;
   const b = timelineBounds(state.povs);
-  if (b) seekGlobal(b.min + (tl.value / 1000) * (b.max - b.min));
+  if (b) seekGlobal(sliderToMs(b));
 });
+// « change » ne part pas si le curseur est relâché sur sa valeur de départ : on termine le geste ici aussi.
+const endScrub = () => { scrubbing = false; };
+for (const ev of ['pointerup', 'pointercancel', 'blur']) tl.addEventListener(ev, endScrub);
 
 // --- Boucle d'horloge ----------------------------------------------------------
 let lastCovered = '';
 setInterval(() => {
-  if (player && state.povs[active]) {
-    try { globalMs = toGlobal(state.povs[active], player.time()); } catch { /* lecteur pas encore prêt */ }
-    $('play').textContent = player.playing() ? '❚❚' : '▶';
+  const cur = state.povs[active];
+  if (player && cur) {
+    try {
+      const g = toGlobal(cur, player.time());
+      const playing = player.playing();
+      // Juste après un montage ou un seek, le lecteur renvoie encore 0 ou l'ancienne position :
+      // on garde l'instant demandé tant qu'il n'a pas confirmé y être.
+      // Après ~3 s de lecture, on fait confiance au lecteur (l'utilisateur a pu se déplacer dans l'embed).
+      if (playing && pendingMs != null) pendingTicks++;
+      if (pendingMs == null || (playing && (Math.abs(g - pendingMs) < 2000 || pendingTicks > 6))) {
+        pendingMs = null;
+        globalMs = g;
+      }
+      $('play').textContent = playing ? '❚❚' : '▶';
+      // La durée n'est connue qu'une fois la vidéo chargée : on la relève dès qu'elle arrive.
+      // La durée réelle l'emporte sur une durée saisie à la main.
+      if (!durationChecked) {
+        const d = player.duration();
+        if (Number.isFinite(d) && d > 0) {
+          durationChecked = true;
+          if (Math.abs(d - (cur.duration || 0)) > 2) {
+            cur.duration = Math.round(d);
+            save();
+            lastCovered = ''; // force le recalcul des cartes, des bornes et des repères
+          }
+        }
+      }
+    } catch { /* lecteur pas encore prêt */ }
   }
   if (globalMs == null || scrubbing) return;
   $('clock').textContent = formatClock(globalMs);

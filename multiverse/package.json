@@ -1,1 +1,8 @@
-{"type":"module","private":true,"scripts":{"test":"node --test"}}
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test sync.test.js",
+    "e2e": "node e2e.cjs"
+  }
+}
