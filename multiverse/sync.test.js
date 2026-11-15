@@ -66,3 +66,16 @@ test('decodeState rejette les entrées corrompues', () => {
   assert.equal(d.povs[0].platform, 'twitch');
   assert.equal(d.moments.length, 0);
 });
+
+test('le lien d\'exemple MCC Pride 2026 se décode', () => {
+  const d = decodeState('eyJ0IjoiTUNDIFByaWRlIDIwMjYiLCJwIjpbWyJ5b3V0dWJlIiwiWG1GYVFwejBUb2siLCJDb21tZW50YWlyZSBvZmZpY2llbCIsMTc4MjU4NDY3OTAwMCwxMzQwNl0sWyJ5b3V0dWJlIiwidFRuYkY2LVNqVUkiLCJJblRoZUxpdHRsZVdvb2QiLDE3ODI1ODU1MDIwMDAsMTI4ODhdLFsieW91dHViZSIsImNDSEpzWGFUUHhFIiwiam9qb3NvbG9zIiwxNzgyNTg2OTA3MDAwLDExMjc3XV0sIm0iOltbMTc4MjU4NjgwMDAwMCwiRMOpYnV0IGR1IHRvdXJub2kiXV19');
+  assert.equal(d.title, 'MCC Pride 2026');
+  assert.equal(d.povs.length, 3);
+  assert.deepEqual(d.povs.map((p) => p.id), ['XmFaQpz0Tok', 'tTnbF6-SjUI', 'cCHJsXaTPxE']);
+  assert.equal(d.povs[0].label, 'Commentaire officiel');
+  assert.equal(d.povs[0].start, Date.parse('2026-06-27T18:24:39+00:00'));
+  assert.equal(d.povs[1].start, Date.parse('2026-06-27T18:38:22+00:00'));
+  assert.equal(d.povs[2].start, Date.parse('2026-06-27T19:01:47+00:00'));
+  assert.equal(d.moments[0].label, 'Début du tournoi');
+  assert.equal(d.moments[0].at, Date.parse('2026-06-27T19:00:00+00:00'));
+});
