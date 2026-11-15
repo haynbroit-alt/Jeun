@@ -40,7 +40,7 @@
       <form id="addPov" class="card">
         <h2>Ajouter un POV</h2>
         <label>URL de la VOD
-          <input name="url" required placeholder="https://www.twitch.tv/videos/… ou youtube.com/watch?v=…">
+          <input name="url" required placeholder="https://www.twitch.tv/videos/… ou https://www.youtube.com/watch?v=…">
         </label>
         <label>Nom du streamer ou du personnage
           <input name="label" maxlength="60" placeholder="ex. : Kayla « Vice » Moreno">
@@ -49,13 +49,13 @@
           <label>Début réel de la VOD
             <input name="start" type="datetime-local" step="1" required>
           </label>
-          <label>Durée <small>(h:mm, optionnelle)</small>
+          <label>Durée <small>(h:mm ou minutes, optionnelle)</small>
             <input name="duration" placeholder="4:00">
           </label>
         </div>
         <p id="formError" class="error" role="alert"></p>
         <button class="btn" type="submit">Ajouter</button>
-        <p class="hint">Astuce : le début réel se trouve sur la page de la VOD. Pour caler finement, placez-vous sur un même moment dans deux POV, puis ajustez avec ±1 s sur la carte.</p>
+        <p class="hint">Astuce : le début réel se trouve sur la page de la VOD. Pour caler finement, placez-vous sur un même moment dans deux POV, puis recalez avec −1s / +1s sur la carte. La durée réelle est relevée automatiquement à la lecture.</p>
       </form>
 
       <div class="card">

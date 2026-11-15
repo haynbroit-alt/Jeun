@@ -10,6 +10,8 @@ test('parseVodUrl reconnaît YouTube et Twitch', () => {
   assert.deepEqual(parseVodUrl('https://youtu.be/dQw4w9WgXcQ'), { platform: 'youtube', id: 'dQw4w9WgXcQ' });
   assert.deepEqual(parseVodUrl('https://youtube.com/live/dQw4w9WgXcQ?si=x'), { platform: 'youtube', id: 'dQw4w9WgXcQ' });
   assert.deepEqual(parseVodUrl('https://www.twitch.tv/videos/2112345678?t=1h'), { platform: 'twitch', id: '2112345678' });
+  assert.deepEqual(parseVodUrl('youtube.com/watch?v=dQw4w9WgXcQ'), { platform: 'youtube', id: 'dQw4w9WgXcQ' });
+  assert.deepEqual(parseVodUrl('www.twitch.tv/videos/123'), { platform: 'twitch', id: '123' });
   assert.equal(parseVodUrl('https://twitch.tv/somechannel'), null);
   assert.equal(parseVodUrl('pas une url'), null);
   assert.equal(parseVodUrl('https://evil.com/watch?v=dQw4w9WgXcQ'), null);

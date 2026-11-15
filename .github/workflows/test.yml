@@ -15,3 +15,8 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - name: Test navigateur (lecteurs simulés)
+        run: |
+          npm i --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+          npm run e2e

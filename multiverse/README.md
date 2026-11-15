@@ -6,7 +6,8 @@ Une histoire, tous les points de vue. MULTIVERSE aligne les VOD de plusieurs str
 - Ajout de VOD Twitch (`/videos/…`) ou YouTube, avec l'heure réelle de début de chaque VOD.
 - Timeline commune : on choisit un instant de l'histoire, et l'outil passe au POV qui le couvre.
 - Bascule de POV en restant synchronisé. Les POV « hors champ » (pas encore commencés ou déjà finis) sont grisés.
-- Calage fin avec ±1 s par POV.
+- Calage fin avec −1s / +1s par POV. La durée réelle de chaque VOD est relevée automatiquement pendant la lecture.
+- Utilisable au clavier : chaque POV et chaque outil est un vrai bouton.
 - Moments clés posés sur la timeline.
 - **Lien partageable** : tout l'état est encodé dans l'URL (`#s=…`). Pas de serveur ni de compte.
 - Lecteurs officiels uniquement (embeds) : aucune vidéo n'est ré-hébergée.
@@ -16,6 +17,7 @@ Une histoire, tous les points de vue. MULTIVERSE aligne les VOD de plusieurs str
 cd multiverse
 python3 -m http.server 8000   # puis ouvrir http://localhost:8000
 npm test                      # tests unitaires de la logique de synchronisation
+npm run e2e                   # test navigateur de bout en bout (lecteurs Twitch/YouTube simulés, Playwright)
 ```
 Le lecteur Twitch exige d'être servi en HTTP(S) depuis un domaine déclaré : `file://` ne marche pas. Pour mettre l'app en ligne, GitHub Pages, Netlify ou Cloudflare Pages suffisent : ce ne sont que des fichiers statiques.
 
