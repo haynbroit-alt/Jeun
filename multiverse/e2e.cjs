@@ -53,6 +53,14 @@ const server = http.createServer((req, res) => {
   let fails = 0;
   const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m); };
   await p.goto(BASE);
+  ok((await p.title()).includes('MULTIVERSE — synchroniser les VOD'), 'titre de la page');
+  ok(await p.$eval('.legal', (e) => { const x = e.textContent; return x.includes('NOVARYS') && x.includes('GitHub Pages') && x.includes('lhssncharfa-pvzmfe@mail.grokbot.com') && !/Lhassan/i.test(x); }), 'mentions légales');
+  const demoHref = await p.getAttribute('#demoLink', 'href');
+  await p.goto(BASE + demoHref);
+  await p.waitForTimeout(800);
+  ok((await p.$$eval('.pov .name', (n) => n.map((x) => x.textContent))).join() === 'Commentaire officiel,InTheLittleWood,jojosolos', 'lien d\'exemple charge les 3 POV');
+  ok((await p.title()).includes('MCC Pride 2026'), 'titre de session de l\'exemple');
+  await p.goto(BASE);
   const add = async (url, label, start, dur = '') => {
     await p.fill('[name=url]', url); await p.fill('[name=label]', label);
     await p.fill('[name=start]', start); await p.fill('[name=duration]', dur);

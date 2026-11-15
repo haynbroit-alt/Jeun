@@ -1,11 +1,26 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-demo-hash="eyJ0IjoiTUNDIFByaWRlIDIwMjYiLCJwIjpbWyJ5b3V0dWJlIiwiWG1GYVFwejBUb2siLCJDb21tZW50YWlyZSBvZmZpY2llbCIsMTc4MjU4NDY3OTAwMCwxMzQwNl0sWyJ5b3V0dWJlIiwidFRuYkY2LVNqVUkiLCJJblRoZUxpdHRsZVdvb2QiLDE3ODI1ODU1MDIwMDAsMTI4ODhdLFsieW91dHViZSIsImNDSEpzWGFUUHhFIiwiam9qb3NvbG9zIiwxNzgyNTg2OTA3MDAwLDExMjc3XV0sIm0iOltbMTc4MjU4NjgwMDAwMCwiRMOpYnV0IGR1IHRvdXJub2kiXV19">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MULTIVERSE</title>
-  <meta name="description" content="Suivez une histoire RP, un SMP ou un événement à travers tous les points de vue des streamers, synchronisés sur une seule horloge.">
+  <title>MULTIVERSE — synchroniser les VOD d'un même événement</title>
+  <meta name="description" content="MULTIVERSE synchronise les VOD YouTube et Twitch d'un même événement (RP, SMP ou tournoi) sur une horloge commune.">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Compteur sans cookies (GoatCounter). Le script n'est chargé que si un code de site est défini.
+    // Le hash de l'URL n'est jamais envoyé en entier : seulement / , /demo ou /lien/xxxxxxxx.
+    window.goatcounter = {
+      path: function () {
+        var hash = location.hash || "";
+        var demo = document.documentElement.getAttribute("data-demo-hash") || "";
+        if (demo && hash.indexOf(demo) !== -1) return "/demo";
+        var m = hash.match(/[#&?]s=([A-Za-z0-9_-]+)/);
+        if (m) return "/lien/" + m[1].slice(0, 12);
+        return location.pathname + location.search || "/";
+      }
+    };
+  </script>
+
 </head>
 <body>
   <header class="top">
@@ -66,7 +81,18 @@
     </aside>
   </main>
 
+
+  <footer class="legal">
+    <p><a id="demoLink" href="#s=eyJ0IjoiTUNDIFByaWRlIDIwMjYiLCJwIjpbWyJ5b3V0dWJlIiwiWG1GYVFwejBUb2siLCJDb21tZW50YWlyZSBvZmZpY2llbCIsMTc4MjU4NDY3OTAwMCwxMzQwNl0sWyJ5b3V0dWJlIiwidFRuYkY2LVNqVUkiLCJJblRoZUxpdHRsZVdvb2QiLDE3ODI1ODU1MDIwMDAsMTI4ODhdLFsieW91dHViZSIsImNDSEpzWGFUUHhFIiwiam9qb3NvbG9zIiwxNzgyNTg2OTA3MDAwLDExMjc3XV0sIm0iOltbMTc4MjU4NjgwMDAwMCwiRMOpYnV0IGR1IHRvdXJub2kiXV19">Essayer un exemple : MCC Pride 2026</a></p>
+    <p>Éditeur : NOVARYS — contact : <a href="mailto:lhssncharfa-pvzmfe@mail.grokbot.com">lhssncharfa-pvzmfe@mail.grokbot.com</a> — hébergeur : GitHub Pages (GitHub, Inc., 88 Colin P. Kelly Jr Street, San Francisco, CA 94107, États-Unis).</p>
+  </footer>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- GoatCounter (sans cookies, gratuit). À activer après création du compte :
+       remplacer CODE par le sous-domaine, puis décommenter la ligne suivante.
+       Tableau de bord : https://CODE.goatcounter.com
+  <script data-goatcounter="https://CODE.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  -->
   <script type="module" src="app.js"></script>
 </body>
 </html>

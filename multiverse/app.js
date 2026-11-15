@@ -274,7 +274,7 @@ $('addMoment').addEventListener('click', () => {
 $('play').addEventListener('click', () => player?.toggle());
 $('title').addEventListener('input', (e) => {
   state.title = e.target.value;
-  document.title = (state.title ? state.title + ' · ' : '') + 'MULTIVERSE';
+  document.title = (state.title ? state.title + ' · ' : '') + 'MULTIVERSE — synchroniser les VOD d\'un même événement';
   save();
 });
 
@@ -285,6 +285,11 @@ $('share').addEventListener('click', async () => {
     toast('Lien copié : il contient tous les POV et les moments.');
   } catch {
     prompt('Copiez ce lien :', location.href);
+  }
+  const demo = document.documentElement.getAttribute('data-demo-hash') || '';
+  const encoded = new URLSearchParams(location.hash.slice(1)).get('s') || '';
+  if (window.goatcounter && typeof window.goatcounter.count === 'function' && encoded && encoded !== demo) {
+    window.goatcounter.count({ path: '/created/' + encoded.slice(0, 12), event: true });
   }
 });
 
@@ -350,7 +355,7 @@ setInterval(() => {
 
 // --- Démarrage -----------------------------------------------------------------
 $('title').value = state.title;
-if (state.title) document.title = state.title + ' · MULTIVERSE';
+if (state.title) document.title = state.title + ' · MULTIVERSE — synchroniser les VOD d\'un même événement';
 renderMoments();
 renderPovs();
 if (state.povs.length) mount(0, null);

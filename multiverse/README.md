@@ -1,6 +1,6 @@
 # MULTIVERSE (MVP)
 
-Une histoire, tous les points de vue. MULTIVERSE aligne les VOD de plusieurs streamers (Twitch ou YouTube) sur **une horloge réelle commune**. On change de POV en un clic et on reste au même instant de l'histoire. C'est fait pour le GTA RP, les SMP Minecraft et les événements entre créateurs.
+Outil du dépôt Jeun. Une histoire, tous les points de vue. MULTIVERSE aligne les VOD de plusieurs streamers (Twitch ou YouTube) sur **une horloge réelle commune**. On change de POV en un clic et on reste au même instant de l'histoire. C'est fait pour le GTA RP, les SMP Minecraft et les événements entre créateurs.
 
 ## Fonctionnalités
 - Ajout de VOD Twitch (`/videos/…`) ou YouTube, avec l'heure réelle de début de chaque VOD.
@@ -26,3 +26,8 @@ Le lecteur Twitch exige d'être servi en HTTP(S) depuis un domaine déclaré : `
 2. Détection automatique des pics « 🔥 ça chauffe ici » à partir des clips et de l'activité du chat (API Twitch).
 3. Pages d'événement « officielles » pour les serveurs RP (offre B2B).
 4. Calage automatique des VOD par corrélation audio.
+
+## Exemple en ligne
+Un lien d'exemple aligne trois VOD publiques de **MCC Pride 2026** (27 juin 2026) : le commentaire officiel, le POV d'InTheLittleWood et celui de jojosolos. Les heures de début viennent des métadonnées publiques des directs YouTube.
+
+[Ouvrir l'exemple](https://haynbroit-alt.github.io/Jeun/#s=eyJ0IjoiTUNDIFByaWRlIDIwMjYiLCJwIjpbWyJ5b3V0dWJlIiwiWG1GYVFwejBUb2siLCJDb21tZW50YWlyZSBvZmZpY2llbCIsMTc4MjU4NDY3OTAwMCwxMzQwNl0sWyJ5b3V0dWJlIiwidFRuYkY2LVNqVUkiLCJJblRoZUxpdHRsZVdvb2QiLDE3ODI1ODU1MDIwMDAsMTI4ODhdLFsieW91dHViZSIsImNDSEpzWGFUUHhFIiwiam9qb3NvbG9zIiwxNzgyNTg2OTA3MDAwLDExMjc3XV0sIm0iOltbMTc4MjU4NjgwMDAwMCwiRMOpYnV0IGR1IHRvdXJub2kiXV19)
