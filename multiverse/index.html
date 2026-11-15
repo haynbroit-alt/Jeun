@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MULTIVERSE</title>
+  <meta name="description" content="Suivez une histoire RP, un SMP ou un événement à travers tous les points de vue des streamers, synchronisés sur une seule horloge.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">MULTI<span>VERSE</span></div>
+    <input id="title" class="title" placeholder="Nom de l'arc (ex. : Braquage de la banque centrale)" maxlength="80">
+    <button id="share" class="btn ghost" type="button">Copier le lien</button>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <div id="player" class="player">
+        <div class="empty">
+          <h1>Une histoire, tous les points de vue.</h1>
+          <p>Ajoutez les VOD de plusieurs streamers (YouTube ou Twitch) et l'heure réelle à laquelle chaque VOD a commencé. MULTIVERSE les aligne sur une horloge commune : changez de POV sans perdre le fil.</p>
+        </div>
+      </div>
+
+      <div class="clockbar">
+        <button id="play" class="btn" type="button" aria-label="Lecture/pause">▶</button>
+        <span id="clock" class="clock">--:--:--</span>
+        <div class="track">
+          <input id="timeline" type="range" min="0" max="1000" value="0" step="1" aria-label="Timeline commune" disabled>
+          <div id="markers" class="markers"></div>
+        </div>
+        <button id="addMoment" class="btn ghost" type="button" disabled>+ Moment</button>
+      </div>
+
+      <div id="povs" class="povs" aria-label="Points de vue"></div>
+    </section>
+
+    <aside class="side">
+      <form id="addPov" class="card">
+        <h2>Ajouter un POV</h2>
+        <label>URL de la VOD
+          <input name="url" required placeholder="https://www.twitch.tv/videos/… ou youtube.com/watch?v=…">
+        </label>
+        <label>Nom du streamer ou du personnage
+          <input name="label" maxlength="60" placeholder="ex. : Kayla « Vice » Moreno">
+        </label>
+        <div class="row">
+          <label>Début réel de la VOD
+            <input name="start" type="datetime-local" step="1" required>
+          </label>
+          <label>Durée <small>(h:mm, optionnelle)</small>
+            <input name="duration" placeholder="4:00">
+          </label>
+        </div>
+        <p id="formError" class="error" role="alert"></p>
+        <button class="btn" type="submit">Ajouter</button>
+        <p class="hint">Astuce : le début réel se trouve sur la page de la VOD. Pour caler finement, placez-vous sur un même moment dans deux POV, puis ajustez avec ±1 s sur la carte.</p>
+      </form>
+
+      <div class="card">
+        <h2>Moments clés</h2>
+        <ol id="moments" class="moments"></ol>
+        <p id="noMoments" class="hint">Marquez les moments forts avec « + Moment ». Ils sont inclus dans le lien partagé.</p>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
