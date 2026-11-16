@@ -8,14 +8,21 @@
   <link rel="stylesheet" href="style.css">
   <script>
     // Compteur sans cookies (GoatCounter). Le script n'est chargé que si un code de site est défini.
-    // Le hash de l'URL n'est jamais envoyé en entier : seulement / , /demo ou /lien/xxxxxxxx.
+    // Le hash de l'URL n'est jamais envoyé : seulement / , /demo ou /lien/<empreinte>.
+    // L'empreinte (8 caractères, FNV-1a sur le lien entier) distingue deux liens sans rien révéler de leur contenu.
+    // Un simple préfixe ne suffit pas : tous les liens sans titre commencent par les mêmes caractères.
+    window.mvShortId = function (s) {
+      var h = 0x811c9dc5;
+      for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+      return ("0000000" + h.toString(16)).slice(-8);
+    };
     window.goatcounter = {
       path: function () {
         var hash = location.hash || "";
         var demo = document.documentElement.getAttribute("data-demo-hash") || "";
         if (demo && hash.indexOf(demo) !== -1) return "/demo";
         var m = hash.match(/[#&?]s=([A-Za-z0-9_-]+)/);
-        if (m) return "/lien/" + m[1].slice(0, 12);
+        if (m) return "/lien/" + window.mvShortId(m[1]);
         return location.pathname + location.search || "/";
       }
     };

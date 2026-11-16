@@ -20,6 +20,20 @@ Avant de conclure, le seuil fixé à l'avance est : **au moins 30 visiteurs inco
 
 Le compteur de visites prévu est GoatCounter (gratuit, sans cookies). Il n'est pas encore actif : il faut un compte gratuit (sous-domaine + e-mail). Sans ce compte, le test de 7 jours ne peut pas être mesuré.
 
+Lire les chiffres dans GoatCounter, une fois le compteur activé :
+
+| Chemin | Ce qu'il compte |
+|---|---|
+| `/` | visites de la page d'accueil |
+| `/demo` | ouvertures du lien d'exemple MCC Pride 2026 |
+| `/lien/<empreinte>` | ouvertures d'un lien partagé ; une empreinte = un lien distinct |
+| `/created/<empreinte>` (événement) | un lien créé puis copié via « Copier le lien » ; une empreinte = un lien distinct |
+| `/pov-ajoute` (événement) | un POV ajouté par quelqu'un qui construit sa propre vue |
+
+L'empreinte compte 8 caractères, calculés sur le lien entier : elle distingue les liens sans rien révéler de leur contenu. **« 3 liens créés par d'autres » = au moins 3 empreinte `/created/…` distinctes qui ne viennent pas de nous.**
+
+Pour ne pas fausser le compte, il faut exclure nos propres visites : ouvrir une fois `https://haynbroit-alt.github.io/Jeun/#toggle-goatcounter` sur chacun de nos appareils et navigateurs, ou ignorer notre adresse IP dans les réglages GoatCounter.
+
 ## Mentions légales
 
 Éditeur : NOVARYS. Contact : lhssncharfa-pvzmfe@mail.grokbot.com. Hébergeur : GitHub Pages (GitHub, Inc.).
