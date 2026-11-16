@@ -1,0 +1,5 @@
+# Note : les robots ne lisent que https://haynbroit-alt.github.io/robots.txt (racine du domaine).
+# Ce fichier sert de référence ; le sitemap est à déclarer dans Google Search Console.
+User-agent: *
+Allow: /
+Sitemap: https://haynbroit-alt.github.io/Jeun/sitemap.xml
