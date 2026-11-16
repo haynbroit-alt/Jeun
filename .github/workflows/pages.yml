@@ -46,7 +46,7 @@ jobs:
       - name: Préparer le site
         run: |
           mkdir -p _site
-          cp multiverse/index.html multiverse/app.js multiverse/sync.js multiverse/style.css _site/
+          cp multiverse/index.html multiverse/app.js multiverse/sync.js multiverse/style.css multiverse/og-image.png multiverse/sitemap.xml multiverse/robots.txt _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

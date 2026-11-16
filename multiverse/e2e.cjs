@@ -54,7 +54,7 @@ const server = http.createServer((req, res) => {
   const ok = (c, m) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + m); };
   await p.goto(BASE);
   ok((await p.title()).includes('MULTIVERSE — synchroniser les VOD'), 'titre de la page');
-  ok(await p.$eval('.legal', (e) => { const x = e.textContent; return x.includes('NOVARYS') && x.includes('GitHub Pages') && x.includes('lhssncharfa-pvzmfe@mail.grokbot.com') && !/Lhassan/i.test(x); }), 'mentions légales');
+  ok(await p.$eval('.legal', (e) => { const x = e.textContent; return x.includes('NOVARYS') && x.includes('GitHub Pages') && x.includes('haynbroit@hotmail.com') && !/Lhassan|charfa/i.test(x); }), 'mentions légales');
   const demoHref = await p.getAttribute('#demoLink', 'href');
   await p.goto(BASE + demoHref);
   await p.waitForTimeout(800);

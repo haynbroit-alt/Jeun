@@ -36,7 +36,7 @@ Pour ne pas fausser le compte, il faut exclure nos propres visites : ouvrir une 
 
 ## Mentions légales
 
-Éditeur : NOVARYS. Contact : lhssncharfa-pvzmfe@mail.grokbot.com. Hébergeur : GitHub Pages (GitHub, Inc.).
+Éditeur : NOVARYS. Contact : haynbroit@hotmail.com. Hébergeur : GitHub Pages (GitHub, Inc.).
 
 ## Développement
 
