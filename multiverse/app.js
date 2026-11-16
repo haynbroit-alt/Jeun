@@ -234,6 +234,13 @@ function save() {
   history.replaceState(null, '', '#s=' + encodeState(state));
 }
 
+/** Signale une action à GoatCounter s'il est chargé ; sans effet sinon (bloqueur, compteur inactif). */
+function track(path) {
+  try {
+    if (typeof window.goatcounter?.count === 'function') window.goatcounter.count({ path, event: true });
+  } catch { /* le comptage ne doit jamais casser l'app */ }
+}
+
 function toast(msg) {
   const t = $('toast');
   t.textContent = msg;
@@ -255,6 +262,7 @@ $('addPov').addEventListener('submit', (e) => {
   if (durText && (!duration || duration > 48 * 3600)) return (err.textContent = 'Durée invalide : utilisez h:mm (ex. 4:00) ou h:mm:ss.');
   err.textContent = '';
   state.povs.push({ ...vod, start, label: String(f.get('label') || '').trim() || vod.id, duration });
+  track('/pov-ajoute');
   save();
   e.target.reset();
   if (state.povs.length === 1) mount(0, null);
@@ -288,9 +296,8 @@ $('share').addEventListener('click', async () => {
   }
   const demo = document.documentElement.getAttribute('data-demo-hash') || '';
   const encoded = new URLSearchParams(location.hash.slice(1)).get('s') || '';
-  if (window.goatcounter && typeof window.goatcounter.count === 'function' && encoded && encoded !== demo) {
-    window.goatcounter.count({ path: '/created/' + encoded.slice(0, 12), event: true });
-  }
+  // Même empreinte que la page /lien/… : on peut relier un lien créé à ses ouvertures.
+  if (encoded && encoded !== demo) track('/created/' + window.mvShortId(encoded));
 });
 
 // Un lien MULTIVERSE collé dans le même onglet ne recharge pas la page : on le fait nous-mêmes.

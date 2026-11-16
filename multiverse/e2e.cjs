@@ -66,9 +66,24 @@ const server = http.createServer((req, res) => {
     await p.fill('[name=start]', start); await p.fill('[name=duration]', dur);
     await p.click('#addPov button[type=submit]');
   };
+
+  // Comptage GoatCounter : faux compteur qui enregistre les appels.
+  await p.evaluate(() => { window.__gc = []; window.goatcounter.count = (o) => window.__gc.push(o.path); });
+  const pathFor = (hash) => p.evaluate((h) => { history.replaceState(null, '', location.pathname + h); const r = window.goatcounter.path(); history.replaceState(null, '', location.pathname); return r; }, hash);
+  const pa = await pathFor('#s=eyJ0IjoiIiwicCI6W1sidHdpdGNoIiwiMTExIiwiQSIsMTc4MjU4NDY3OTExMSwwXV0sIm0iOltdfQ');
+  const pb = await pathFor('#s=eyJ0IjoiIiwicCI6W1sidHdpdGNoIiwiOTk5IiwiQSIsMTc4MjU4NDY3OTk5OSwwXV0sIm0iOltdfQ');
+  ok(/^\/lien\/[0-9a-f]{8}$/.test(pa) && pa !== pb, 'deux liens sans titre ont des chemins distincts (' + pa + ' / ' + pb + ')');
+  ok((await pathFor(demoHref)) === '/demo', 'le lien d\'exemple est compté à part (/demo)');
+  ok((await pathFor('')) === '/', 'page d\'accueil comptée sur /');
   await add('www.twitch.tv/videos/111', 'Alpha', '2026-11-19T20:00');
   await add('https://youtu.be/dQw4w9WgXcQ', 'Bravo', '2026-11-19T20:30');
   ok((await p.textContent('#formError')) === '', 'URL sans https:// acceptée');
+  ok((await p.evaluate(() => window.__gc.filter((x) => x === '/pov-ajoute').length)) === 2, 'événement /pov-ajoute envoyé à chaque POV ajouté');
+  await p.click('#share');
+  await p.waitForTimeout(200);
+  const created = await p.evaluate(() => window.__gc.find((x) => x.startsWith('/created/')));
+  const expected = await p.evaluate(() => '/created/' + window.mvShortId(new URLSearchParams(location.hash.slice(1)).get('s')));
+  ok(created === expected, 'événement /created/<empreinte> envoyé au partage (' + created + ')');
   await add('https://youtu.be/dQw4w9WgXcQ', 'Bad', '2026-11-19T20:30', '45:99:99:1');
   ok((await p.textContent('#formError')).includes('Durée invalide'), 'durée invalide signalée');
   ok((await p.$$('.pov')).length === 2, 'POV invalide non ajouté');
